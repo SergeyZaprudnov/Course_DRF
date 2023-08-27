@@ -41,7 +41,10 @@ DJANGO_APPS = [
 ]
 
 USER_APPS = [
-    'good_habbit_tracker',
+    'rest_framework',
+
+    'habbit',
+    'users',
 ]
 # Application definition
 
@@ -130,3 +133,5 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+AUTH_USER_MODEL = 'users.User'
