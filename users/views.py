@@ -1,22 +1,27 @@
-from django.shortcuts import render
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
+
+from users.models import User
+from users.serializers import UserSerializer
 
 
 class UserCreateAPIView(CreateAPIView):
-    pass
+    serializer_class = UserSerializer
 
 
 class UserListAPIView(ListAPIView):
-    pass
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
 
 
 class UserRetrieveAPIView(RetrieveAPIView):
-    pass
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
 
 
 class UserUpdateAPIView(UpdateAPIView):
-    pass
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
 
 
 class UserDestroyAPIView(DestroyAPIView):
-    pass
+    queryset = User.objects.all()
