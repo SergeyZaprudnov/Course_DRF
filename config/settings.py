@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -42,6 +43,11 @@ DJANGO_APPS = [
 
 USER_APPS = [
     'rest_framework',
+    'django_filters',
+    'rest_framework_simplejwt',
+    'corsheaders',
+    'drf_yasg',
+    'django_celery_beat',
 
     'habbit',
     'users',
@@ -53,6 +59,7 @@ INSTALLED_APPS = DJANGO_APPS + USER_APPS
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -133,5 +140,58 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 AUTH_USER_MODEL = 'users.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated'
+
+    ]
+}
+
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
+
+CORS_ALLOWED_ORIGINS = [
+    "https://read-only.example.com",
+    "https://read-and-write.example.com",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://read-and-write.example.com",
+]
+
+
+TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
+USER_TELEGAM_ID = os.getenv('USER_TELEGAM_ID')
+CHAT_ID = os.getenv('CHAT_ID')
+
+
+CELERY_BROKER_URL = 'redis://localhost:6379'
+
+
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+
+
+CELERY_TIMEZONE = "Europe/Moscow"
+
+
+CELERY_TASK_TRACK_STARTED = True
+
+
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+
+CELERY_BEAT_SCHEDULE = {
+    'send_telegram_message': {
+        'task': 'education.tasks.send_telegram_message',
+        'schedule': timedelta(days=1),  
+    },
+}
