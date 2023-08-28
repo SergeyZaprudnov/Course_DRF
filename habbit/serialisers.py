@@ -15,3 +15,14 @@ class HabbitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Habbit
         fields = '__all__'
+
+    def validate(self, data):
+        related_habbit = data.get('related_habbit')
+        reward = data.get('reward')
+        useful = data.get('useful')
+        if related_habbit and reward:
+            raise serializers.ValidationError('Привычка и награда не могут указываться одновременно')
+        elif useful and (reward is not None or related_habbit is not None):
+            raise serializers.ValidationError('Приятная привычка не вознаграждается и не имеет связанной привычки')
+        return data
+
