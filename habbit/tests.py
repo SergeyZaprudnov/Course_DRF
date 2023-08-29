@@ -22,9 +22,9 @@ class HabitTestCase(APITestCase):
             place='Квартира',
             time="10:00:00",
             action='Уборка',
-            pleasant=True,
+            useful=True,
             period=1,
-            time_to_complete=10
+            time_complete=10
         )
 
     def test_create_habbit(self):
@@ -34,7 +34,7 @@ class HabitTestCase(APITestCase):
             'place': 'Дом',
             'time': '08:00:00',
             'action': 'Игра в Lineage II',
-            'pleasant': False,
+            'useful': False,
             'period': 8,
             'time_complete': 15
         }
