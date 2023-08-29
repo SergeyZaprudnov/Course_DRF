@@ -182,11 +182,11 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 
 CELERY_BEAT_SCHEDULE = {
     'update-users': {
-        'task': 'config.tasks.update_telegram_ids',
+        'task': 'habbit.tasks.update_telegram_ids',
         'schedule': timedelta(minutes=1),
     },
     'notify-users': {
-        'task': 'config.tasks.send_notifications',
+        'task': 'habbit.tasks.send_notifications',
         'schedule': crontab(hour='01', minute='00'),
     },
 }
