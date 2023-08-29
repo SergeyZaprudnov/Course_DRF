@@ -13,6 +13,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -153,45 +154,40 @@ REST_FRAMEWORK = {
     ]
 }
 
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "https://read-only.example.com",
-    "https://read-and-write.example.com",
+    "http://localhost:8000",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://read-and-write.example.com",
+    "https://localhost:8000",
 ]
-
 
 TELEGRAM_API_TOKEN = os.getenv('TELEGRAM_API_TOKEN')
 USER_TELEGAM_ID = os.getenv('USER_TELEGRAM_ID')
 CHAT_ID = os.getenv('CHAT_ID')
 
-
-CELERY_BROKER_URL = 'redis://localhost:6379'
-
-
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
-
-
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_IMPORTS = ("config.tasks",)
 CELERY_TIMEZONE = "Europe/Moscow"
-
 
 CELERY_TASK_TRACK_STARTED = True
 
-
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
-
 CELERY_BEAT_SCHEDULE = {
-    'send_telegram_message': {
-        'task': 'education.tasks.send_telegram_message',
-        'schedule': timedelta(days=1),  
+    'update-users': {
+        'task': 'config.tasks.update_telegram_ids',
+        'schedule': timedelta(minutes=1),
+    },
+    'notify-users': {
+        'task': 'config.tasks.send_notifications',
+        'schedule': crontab(hour='01', minute='00'),
     },
 }
+CORS_ALLOW_ALL_ORIGINS = False
