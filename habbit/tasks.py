@@ -5,25 +5,57 @@ from celery import shared_task
 
 from config import settings
 from habbit.models import Habbit
+from users.models import User
 
 telegram_api_token = settings.TELEGRAM_API_TOKEN
 chat_id = settings.CHAT_ID
 
 
 @shared_task
-def telegram_message(habbit_id):
-    habbit = Habbit.objects.get(id=habbit_id)
-    habbit_time = habbit.time
-    now = datetime.now().time()
-    seconds_until_habbit = (datetime.combine(datetime.today(), habbit_time) - datetime.combine(datetime.today(),
-                                                                                               now)).total_seconds()
-    message = (
-        f"Напоминание о привычке {habbit.user.telegram_username}:\n Место: {habbit.place}\n"
-        f"Действие: {habbit.action}\n Время: {habbit.time}")
-    url = f"https://api.telegram.org/bot{telegram_api_token}/sendMessage"
-    params = {
-        "chat_id": chat_id,
-        "text": message,
-        "schedule_date": int(now.timestamp() + seconds_until_habbit)
-    }
-    response = requests.get(url, params=params)
+def update_telegram_ids():
+    method = '/getUpdates'
+    url = settings.TELEGRAM_URL + settings.TELEGRAM_API_KEY + method
+    response = requests.get(url)
+    updates = response.json()['result']
+    for update in updates:
+        if update['message']['entities'][0]['type'] == 'email':
+            email = update['message']['text']
+            if User.objects.filter(email=email).exists():
+                user = User.objects.get(email=email)
+                user.telegram_id = update['message']['chat']['id']
+                user.save()
+    if updates:
+        requests.get(
+            url,
+            params={'offset': updates[-1]['update_id'] + 1}
+        )
+
+
+@shared_task
+def send_notifications():
+    method = '/sendMessage'
+    url = settings.TELEGRAM_URL + settings.TELEGRAM_API_KEY + method
+    for user in User.objects.all():
+        if not user.telegram_id:
+            continue
+        message = (f"Привет!"
+                   f"Вот Ваши привычки на сегодня!\n")
+        habits = Habbit.objects.filter(owner=user).order_by('time')
+        for habit in habits:
+            diff = datetime.date.today() - habit.created_on
+            if diff.days % habit.period != 0:
+                continue
+            elif not habit.is_pleasant:
+                message += (
+                    f"*{habit.time.strftime('%H:%M')}*"
+                    f" - {habit.action.upper()} in {habit.place}\n\n"
+                )
+        params = {
+            'chat_id': user.telegram_id,
+            'text': message,
+            'parse_mode': 'MarkdownV2'
+        }
+        requests.post(
+            url,
+            params=params,
+        )
